@@ -1,0 +1,20 @@
+name: ETL test harness
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pytest -q --junitxml=test-results/pytest-results.xml
+      - run: python -m src.generate_data --output data/orders.csv
+      - run: python -m src.etl_pipeline data/orders.csv --database data/orders.sqlite --rejects data/rejects.csv
+      - run: python -m src.report --database data/orders.sqlite
